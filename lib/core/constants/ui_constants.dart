@@ -43,7 +43,7 @@ class UiConstants {
   static const String yourAccountHasBeenCreatedSuccessfully =
       'Your account has been created successfully! 🤍';
 
-  static const String welocometotribeUp = 'Welcome to TribeUp!';
+  static const String welcomeToTribeUp = 'Welcome to TribeUp!';
   static const String pleaseEnterYourCurrentPassword =
       'Please enter your current password';
   static const String pleaseEnterYourNewPassword =
