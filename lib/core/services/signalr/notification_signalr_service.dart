@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:logging/logging.dart' as app_logging;
 import 'package:signalr_netcore/signalr_client.dart';
 import 'package:tribe_up/core/constants/api_constants.dart';
+import 'package:tribe_up/core/services/secure_storage_service.dart';
 import 'package:tribe_up/features/notification/domain/entities/notification_entity.dart';
 
 /// Manages the real-time connection to the `/hubs/notifications` SignalR hub.
@@ -13,10 +13,10 @@ import 'package:tribe_up/features/notification/domain/entities/notification_enti
 /// Handles the `notification-received` server-push event.
 @lazySingleton
 class NotificationSignalRService {
-  final Box<String> _tokenBox;
+  final SecureStorageService _secureStorageService;
   final Logger _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
-  NotificationSignalRService(this._tokenBox);
+  NotificationSignalRService(this._secureStorageService);
 
   HubConnection? _connection;
   bool _isConnected = false;
@@ -34,7 +34,7 @@ class NotificationSignalRService {
 
     try {
       // Strip any "Bearer " prefix — SignalR client adds it automatically.
-      final rawToken = _tokenBox.get(CacheConstants.tokenKey) ?? '';
+      final rawToken = await _secureStorageService.getToken() ?? '';
       final token = rawToken.startsWith('Bearer ')
           ? rawToken.substring(7)
           : rawToken;
@@ -48,7 +48,10 @@ class NotificationSignalRService {
               .withUrl(
                 '${ApiConstants.hubBaseUrl}${ApiConstants.notificationsHubPath}',
                 options: HttpConnectionOptions(
-                  accessTokenFactory: () async => token,
+                  accessTokenFactory: () async {
+                    final raw = await _secureStorageService.getToken() ?? '';
+                    return raw.startsWith('Bearer ') ? raw.substring(7) : raw;
+                  },
                   transport: HttpTransportType.WebSockets,
                   skipNegotiation: true,
                   requestTimeout: 30000,
