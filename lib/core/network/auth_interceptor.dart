@@ -1,24 +1,27 @@
 import 'package:dio/dio.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:tribe_up/core/constants/api_constants.dart';
 import 'package:tribe_up/core/network/device_id_manager.dart';
+import 'package:tribe_up/core/services/secure_storage_service.dart';
 import 'package:tribe_up/features/auth/data/models/login_request/refresh_token_request_model.dart';
 import 'package:tribe_up/features/auth/data/models/login_response/login_response_model.dart';
 
-class AuthInterceptor extends Interceptor {
-  final Box<String> tokenBox;
+class AuthInterceptor extends QueuedInterceptor {
+  final SecureStorageService secureStorageService;
   final DeviceIdManager deviceIdManager;
   final String baseUrl;
 
   AuthInterceptor({
-    required this.tokenBox,
+    required this.secureStorageService,
     required this.deviceIdManager,
     required this.baseUrl,
   });
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final token = tokenBox.get(CacheConstants.tokenKey);
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final token = await secureStorageService.getToken();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -28,7 +31,7 @@ class AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
-      final refreshToken = tokenBox.get(CacheConstants.refreshTokenKey);
+      final refreshToken = await secureStorageService.getRefreshToken();
 
       if (refreshToken != null && refreshToken.isNotEmpty) {
         try {
@@ -46,12 +49,8 @@ class AuthInterceptor extends Interceptor {
             final loginResponse = LoginResponseModel.fromJson(response.data);
             if (loginResponse.accessToken != null &&
                 loginResponse.refreshToken != null) {
-              await tokenBox.put(
-                CacheConstants.tokenKey,
-                loginResponse.accessToken!,
-              );
-              await tokenBox.put(
-                CacheConstants.refreshTokenKey,
+              await secureStorageService.saveToken(loginResponse.accessToken!);
+              await secureStorageService.saveRefreshToken(
                 loginResponse.refreshToken!,
               );
 
@@ -60,7 +59,6 @@ class AuthInterceptor extends Interceptor {
               options.headers['Authorization'] =
                   'Bearer ${loginResponse.accessToken}';
 
-              // Ensure we use the same method and headers for retry
               final retryResponse = await refreshDio.request(
                 options.path,
                 data: options.data,
@@ -76,8 +74,7 @@ class AuthInterceptor extends Interceptor {
           }
         } catch (e) {
           // If refresh fails, clear tokens
-          await tokenBox.delete(CacheConstants.tokenKey);
-          await tokenBox.delete(CacheConstants.refreshTokenKey);
+          await secureStorageService.clearAuthData();
         }
       }
     }

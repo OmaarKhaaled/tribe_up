@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -6,11 +7,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tribe_up/core/constants/api_constants.dart';
 import 'package:tribe_up/core/network/auth_interceptor.dart';
 import 'package:tribe_up/core/network/device_id_manager.dart';
+import 'package:tribe_up/core/services/secure_storage_service.dart';
+
+@module
+abstract class SecureStorageModule {
+  @singleton
+  FlutterSecureStorage get storage => const FlutterSecureStorage();
+}
 
 @module
 abstract class DioModule {
   @lazySingleton
-  Dio dio(DeviceIdManager deviceIdManager, Box<String> tokenBox) {
+  Dio dio(
+    DeviceIdManager deviceIdManager,
+    SecureStorageService secureStorageService,
+  ) {
     final dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
@@ -26,7 +37,7 @@ abstract class DioModule {
 
     dio.interceptors.add(
       AuthInterceptor(
-        tokenBox: tokenBox,
+        secureStorageService: secureStorageService,
         deviceIdManager: deviceIdManager,
         baseUrl: ApiConstants.baseUrl,
       ),

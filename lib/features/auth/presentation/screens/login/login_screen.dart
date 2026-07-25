@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
         case NavigateToFeedIntent():
           UIUtils.hideLoading(context);
-          UIUtils.showPremiumMessage(context, UiConstants.welocometotribeUp);
+          UIUtils.showPremiumMessage(context, UiConstants.welcomeToTribeUp);
           context.goNamed(AppRoutesConstants.feed, extra: event.userSummary);
           break;
       }

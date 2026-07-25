@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:logging/logging.dart' as app_logging;
 import 'package:signalr_netcore/signalr_client.dart';
 import 'package:tribe_up/core/constants/api_constants.dart';
+import 'package:tribe_up/core/services/secure_storage_service.dart';
 import 'package:tribe_up/features/groups/data/models/chat_message_model.dart';
 import 'package:tribe_up/features/groups/domain/entities/chat_message_entity.dart';
 
@@ -32,10 +32,10 @@ class UpdateInboxPayload {
 
 @lazySingleton
 class GroupChatSignalRService {
-  final Box<String> _tokenBox;
+  final SecureStorageService _secureStorageService;
   final Logger _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
-  GroupChatSignalRService(this._tokenBox);
+  GroupChatSignalRService(this._secureStorageService);
 
   // ── Hub connection ──────────────────────────────────────────────────────────
   HubConnection? _connection;
@@ -86,7 +86,7 @@ class GroupChatSignalRService {
 
     try {
       // Strip any "Bearer " prefix — SignalR client adds it automatically.
-      final rawToken = _tokenBox.get(CacheConstants.tokenKey) ?? '';
+      final rawToken = await _secureStorageService.getToken() ?? '';
       final token = rawToken.startsWith('Bearer ')
           ? rawToken.substring(7)
           : rawToken;
@@ -100,7 +100,10 @@ class GroupChatSignalRService {
               .withUrl(
                 '${ApiConstants.hubBaseUrl}${ApiConstants.groupChatHubPath}',
                 options: HttpConnectionOptions(
-                  accessTokenFactory: () async => token,
+                  accessTokenFactory: () async {
+                    final raw = await _secureStorageService.getToken() ?? '';
+                    return raw.startsWith('Bearer ') ? raw.substring(7) : raw;
+                  },
                   transport: HttpTransportType.WebSockets,
                   skipNegotiation: true,
                   requestTimeout: 30000,
