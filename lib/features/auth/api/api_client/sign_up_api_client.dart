@@ -9,7 +9,7 @@ import 'package:tribe_up/features/auth/data/models/sign_up_response/sign_up_resp
 part 'sign_up_api_client.g.dart';
 
 @singleton
-@RestApi()
+@RestApi(baseUrl: ApiConstants.baseUrl)
 abstract class SignUpApiClient {
   @factoryMethod
   factory SignUpApiClient(Dio dio) = _SignUpApiClient;

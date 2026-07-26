@@ -13,6 +13,7 @@ import 'package:tribe_up/features/feed/presentation/view/widgets/dialogs/edit_po
 import 'package:tribe_up/features/feed/presentation/view/widgets/video_player_widget.dart';
 import 'package:tribe_up/features/comments/presentation/view/widgets/comments_bottom_sheet.dart';
 import 'package:tribe_up/features/feed/presentation/view/widgets/expandable_text.dart';
+import 'package:tribe_up/features/feed/presentation/view/widgets/post_likers_bottom_sheet.dart';
 import 'package:tribe_up/features/groups/data/models/response/groups_response.dart';
 
 class PostCard extends StatelessWidget {
@@ -161,14 +162,25 @@ class PostCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  '${post.likesCount}',
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                GestureDetector(
+                  onTap: () {
+                    PostLikersBottomSheet.show(context, post.postId);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 6,
+                    ),
+                    child: Text(
+                      '${post.likesCount}',
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
 
                 // Comments
                 GestureDetector(
