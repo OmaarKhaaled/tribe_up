@@ -6,6 +6,7 @@ import 'package:tribe_up/core/network/api_call.dart';
 import 'package:tribe_up/features/feed/data/data_sources/feed_remote_data_source.dart';
 import 'package:tribe_up/features/feed/domain/entities/feed_response_entity.dart';
 import 'package:tribe_up/features/feed/domain/entities/post_entity.dart';
+import 'package:tribe_up/features/feed/domain/entities/post_liker_entity.dart';
 import 'package:tribe_up/features/feed/domain/repository/feed_repository.dart';
 
 @Injectable(as: FeedRepository)
@@ -98,6 +99,23 @@ class FeedRepositoryImpl implements FeedRepository {
         isLiked: response.isLiked ?? false,
         likesCount: response.likesCount ?? 0,
       );
+    });
+  }
+
+  @override
+  Future<BaseResponse<List<PostLikerEntity>>> getPostLikes({
+    required int postId,
+    int page = 1,
+    int pageSize = 20,
+  }) {
+    return safeApiCall<List<PostLikerEntity>>(() async {
+      final response = await _remoteDataSource.getPostLikes(
+        postId: postId,
+        page: page,
+        pageSize: pageSize,
+      );
+      final items = response.items ?? [];
+      return items.map((e) => e.toEntity()).toList();
     });
   }
 
