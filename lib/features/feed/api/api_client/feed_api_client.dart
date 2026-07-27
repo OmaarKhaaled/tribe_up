@@ -11,6 +11,8 @@ import 'package:tribe_up/features/feed/data/models/feed_response.dart';
 import 'package:tribe_up/features/feed/data/models/toggle_like_response.dart';
 import 'package:tribe_up/features/feed/data/models/post_model.dart';
 
+import 'package:tribe_up/features/feed/data/models/post_likers_response.dart';
+
 part 'feed_api_client.g.dart';
 
 @injectable
@@ -65,7 +67,7 @@ abstract class FeedApiClient {
   Future<PostModel> getPostById(@Path('postId') int postId);
 
   @GET(ApiConstants.postLikesEndPoint)
-  Future<dynamic> getPostLikes(
+  Future<PostLikersResponse> getPostLikes(
     @Path('postId') int postId,
     @Query(UiConstants.page) int page,
     @Query(UiConstants.pageSize) int pageSize,

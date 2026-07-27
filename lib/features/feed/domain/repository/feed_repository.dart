@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:tribe_up/config/base_response/base_response.dart';
 import 'package:tribe_up/features/feed/domain/entities/feed_response_entity.dart';
 import 'package:tribe_up/features/feed/domain/entities/post_entity.dart';
+import 'package:tribe_up/features/feed/domain/entities/post_liker_entity.dart';
 
 abstract class FeedRepository {
   Future<BaseResponse<FeedResponseEntity>> getFeedPosts({
@@ -34,6 +35,12 @@ abstract class FeedRepository {
 
   Future<BaseResponse<({bool isLiked, int likesCount})>> toggleLikePost({
     required int postId,
+  });
+
+  Future<BaseResponse<List<PostLikerEntity>>> getPostLikes({
+    required int postId,
+    int page,
+    int pageSize,
   });
 
   Future<BaseResponse<PostEntity>> editPost({
